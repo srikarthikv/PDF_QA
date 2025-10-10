@@ -1,0 +1,294 @@
+# Jain Learning Ecosystem Configuration
+
+# Core Settings
+app:
+  name: "Jain AI Learning Ecosystem"
+  version: "1.0.0"
+  debug: false
+  secret_key: "your-secret-key-here"
+  max_content_length: 104857600  # 100MB
+
+# Google Cloud Credentials
+google_credentials:
+  path: "D:/Downloads/med-ai-insight-311da08418e9 (1).json"
+  project_id: "med-ai-insight"
+  location: "us-central1"
+  model_name: "gemini-2.0-flash-exp"
+
+# AI Model Configuration
+ai:
+  provider: "gemini"
+  model: "gemini-2.0-flash-exp"
+  temperature: 0.7
+  max_tokens: 4096
+  embedding_model: "text-embedding-ada-002"
+  embedding_dimension: 1536
+
+# Data Directories Configuration
+data:
+  pdfs_dir: "data/input_pdfs"
+  output_dir: "data/output"
+  user_profiles_dir: "data/user_profiles"
+  learning_paths_dir: "data/learning_paths"
+
+# Vector Database Configuration
+vector_db:
+  provider: "chroma"
+  persist_directory: "./data/output"
+  collection_prefix: "jain_learning"
+  chunk_size: 1000
+  chunk_overlap: 200
+
+# Vector Store Configuration
+vector_stores:
+  chunking:
+    chunk_size: 1000
+    chunk_overlap: 200
+  embedding_model: "intfloat/multilingual-e5-base"
+  max_chunks_per_query: null  # null means unlimited - retrieve as many relevant chunks as needed
+
+# Language Support
+languages:
+  supported:
+    - code: "english"
+      name: "English"
+      native_name: "English"
+    - code: "hindi"
+      name: "Hindi"
+      native_name: "हिंदी"
+    - code: "gujarati"
+      name: "Gujarati"
+      native_name: "ગુજરાતી"
+  default: "english"
+  list: ["hindi", "gujarati", "english"]
+
+# Jain Sects Configuration (Updated religion names)
+religions: ["Digambara", "Shwetambara", "Terapanthi", "Sthanakvasi"]
+
+sects:
+  supported:
+    - code: "Digambara"
+      name: "Digambara"
+      display_name: "Digambara"
+      description: "Sky-clad tradition emphasizing renunciation"
+      male_ascetic: "Digambara Muni"
+      female_ascetic: "Aryika"
+      male_layperson: "Shravaka"
+      female_layperson: "Shravika"
+      colors:
+        primary: "#FF6B35"
+        secondary: "#F7931E"
+
+    - code: "Shwetambara"
+      name: "Shwetambara"
+      display_name: "Shwetambara"
+      description: "White-clad tradition with canonical scriptures"
+      male_ascetic: "Sadhu"
+      female_ascetic: "Sadhvi"
+      male_layperson: "Shravaka"
+      female_layperson: "Shravika"
+      colors:
+        primary: "#FFFFFF"
+        secondary: "#E8E8E8"
+
+    - code: "Terapanthi"
+      name: "Terapanthi"
+      display_name: "Terapanthi"
+      description: "Reform movement within Shwetambara tradition"
+      male_ascetic: "Terapanthi Sadhu"
+      female_ascetic: "Terapanthi Sadhvi"
+      male_layperson: "Shravaka"
+      female_layperson: "Shravika"
+      colors:
+        primary: "#4A90E2"
+        secondary: "#7BB3F0"
+
+    - code: "Sthanakvasi"
+      name: "Sthanakvasi"
+      display_name: "Sthanakvasi"
+      description: "Non-idol worshipping Shwetambara sub-sect"
+      male_ascetic: "Sthanakvasi Sadhu"
+      female_ascetic: "Sthanakvasi Sadhvi"
+      male_layperson: "Shravaka"
+      female_layperson: "Shravika"
+      colors:
+        primary: "#50C878"
+        secondary: "#98FB98"
+
+# User Profile Configuration
+user_profiles:
+  age_groups:
+    - code: "child"
+      name: "Child"
+      range: "5-12"
+      description: "Simple stories and moral teachings"
+    - code: "teen"
+      name: "Teenager"
+      range: "13-18"
+      description: "Philosophy basics and practical guidance"
+    - code: "adult"
+      name: "Adult"
+      range: "19-65"
+      description: "Comprehensive teachings and practices"
+    - code: "senior"
+      name: "Senior"
+      range: "65+"
+      description: "Advanced philosophy and spiritual guidance"
+
+  knowledge_levels:
+    - code: "beginner"
+      name: "Basic"
+      description: "New to Jainism"
+      score_range: [0, 40]
+      threshold: 0.4
+    - code: "intermediate"
+      name: "Intermediate"
+      description: "Basic understanding of Jain principles"
+      score_range: [41, 70]
+      threshold: 0.7
+    - code: "advanced"
+      name: "Advanced"
+      description: "Deep knowledge of Jain philosophy"
+      score_range: [71, 100]
+      threshold: 1.0
+
+# Learning Modules Configuration
+modules:
+  jainpath:
+    name: "JainPath"
+    description: "Guided Learning Journey"
+    features: ["personalized_paths", "progress_tracking", "adaptive_content"]
+
+  jaingpt:
+    name: "JainGPT"
+    description: "AI Q&A Chatbot"
+    features: ["pdf_based_answers", "sect_specific_responses", "multilingual"]
+
+  jainquiz:
+    name: "JainQuiz"
+    description: "Gamified Quiz System"
+    features: ["adaptive_difficulty", "progress_tracking", "leaderboards"]
+
+  jainstories:
+    name: "Jain Stories & Saints"
+    description: "Moral Stories and Biographies"
+    features: ["age_appropriate", "interactive_elements", "audio_narration"]
+
+  ahimsa_coach:
+    name: "Ahimsa Coach"
+    description: "Mindfulness and Non-violence Guide"
+    features: ["daily_practices", "meditation_guidance", "ethical_scenarios"]
+
+  tirthyatra:
+    name: "TirthYatra AI"
+    description: "Virtual Temple and Pilgrimage Guide"
+    features: ["360_tours", "historical_context", "ritual_guidance"]
+
+  pathshala:
+    name: "Pathshala Companion"
+    description: "Teacher Assistant Tool"
+    features: ["lesson_planning", "student_assessment", "resource_library"]
+
+  text_explorer:
+    name: "Jain Text Explorer"
+    description: "Scripture Research Tool"
+    features: ["advanced_search", "cross_references", "scholarly_annotations"]
+
+# Assessment Configuration
+assessment:
+  initial_questions: 5
+
+  question_types:
+    - "multiple_choice"
+    - "true_false"
+    - "short_answer"
+    - "scenario_based"
+
+  difficulty_levels:
+    - code: "easy"
+      name: "Easy"
+      points: 1
+    - code: "medium"
+      name: "Medium"
+      points: 2
+    - code: "hard"
+      name: "Hard"
+      points: 3
+
+  categories:
+    - code: "principles"
+      name: "Core Principles"
+      weight: 30
+    - code: "history"
+      name: "History & Traditions"
+      weight: 25
+    - code: "practices"
+      name: "Rituals & Practices"
+      weight: 25
+    - code: "philosophy"
+      name: "Philosophy & Ethics"
+      weight: 20
+
+  knowledge_levels:
+    - name: "Basic"
+      threshold: 0.4
+    - name: "Intermediate"
+      threshold: 0.7
+    - name: "Advanced"
+      threshold: 1.0
+
+# Learning Configuration
+learning:
+  topics_per_level: 3
+  quizzes_per_topic: 2
+  flashcards_per_topic: 5
+
+# File Processing Configuration
+file_processing:
+  allowed_extensions: [".pdf", ".txt", ".docx"]
+  max_file_size: 104857600  # 100MB
+  ocr_languages: ["eng", "hin", "guj"]
+  chunk_strategy: "semantic"
+
+# RAG Configuration
+rag:
+  max_chunks: null  # null means unlimited - retrieve all relevant chunks
+  similarity_threshold: 0.5  # Lower threshold to capture more relevant content from large books
+  max_tokens: 8000  # Increased token limit for comprehensive answers from multiple books
+  top_k_retrieval: 50  # Retrieve top 50 most relevant chunks initially
+  rerank: true  # Re-rank chunks for better relevance
+
+# Security Configuration
+security:
+  upload_path: "./data/input_pdfs"
+  allowed_hosts: ["localhost", "127.0.0.1"]
+  session_timeout: 3600  # 1 hour
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 100
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file_path: "./logs/app.log"
+  max_bytes: 10485760  # 10MB
+  backup_count: 5
+
+# UI Configuration
+ui:
+  theme:
+    primary_color: "#FF6B35"
+    secondary_color: "#4A90E2"
+    accent_color: "#50C878"
+    background_color: "#F8F9FA"
+    text_color: "#212529"
+
+  animations:
+    loading_duration: 300  # milliseconds
+    transition_duration: 200
+
+  responsive_breakpoints:
+    mobile: 768
+    tablet: 1024
+    desktop: 1200

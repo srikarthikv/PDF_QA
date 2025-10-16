@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+
+{% block title %}My Progress - Jain AI Learning Ecosystem{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5">
+                <i class="fas fa-chart-line me-2"></i>My Learning Progress
+            </h1>
+            <p class="lead text-muted">Track your learning journey and achievements</p>
+        </div>
+    </div>
+
+    <!-- Progress Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-book-open text-primary mb-2" style="font-size: 2rem;"></i>
+                    <h5 class="card-title">Topics Studied</h5>
+                    <h2 class="text-primary">{{ progress.topics_studied|default(0) }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-clipboard-check text-success mb-2" style="font-size: 2rem;"></i>
+                    <h5 class="card-title">Assessments</h5>
+                    <h2 class="text-success">{{ progress.assessments_taken|default(0) }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-clock text-info mb-2" style="font-size: 2rem;"></i>
+                    <h5 class="card-title">Study Hours</h5>
+                    <h2 class="text-info">{{ progress.total_hours|default(0)|round(1) }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <i class="fas fa-trophy text-warning mb-2" style="font-size: 2rem;"></i>
+                    <h5 class="card-title">Achievements</h5>
+                    <h2 class="text-warning">{{ progress.achievements|default(0) }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Knowledge Level & Progress -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-graduation-cap me-2"></i>Knowledge Level</h5>
+                </div>
+                <div class="card-body">
+                    <h3 class="text-center text-capitalize">{{ progress.knowledge_level|default('Beginner') }}</h3>
+                    <div class="progress mt-3" style="height: 30px;">
+                        {% set level_percent = {'beginner': 25, 'intermediate': 50, 'advanced': 75, 'expert': 100} %}
+                        <div class="progress-bar bg-success progress-bar-striped progress-bar-animated"
+                             role="progressbar"
+                             style="width: {{ level_percent.get(progress.knowledge_level|default('beginner')|lower, 25) }}%"
+                             aria-valuenow="{{ level_percent.get(progress.knowledge_level|default('beginner')|lower, 25) }}"
+                             aria-valuemin="0"
+                             aria-valuemax="100">
+                            {{ level_percent.get(progress.knowledge_level|default('beginner')|lower, 25) }}%
+                        </div>
+                    </div>
+                    <p class="mt-3 text-muted text-center">
+                        Keep learning to advance to the next level!
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Assessment Performance</h5>
+                </div>
+                <div class="card-body">
+                    {% if analytics and analytics.assessment_average %}
+                    <h3 class="text-center">{{ analytics.assessment_average|round(1) }}%</h3>
+                    <div class="progress mt-3" style="height: 30px;">
+                        <div class="progress-bar"
+                             role="progressbar"
+                             style="width: {{ analytics.assessment_average }}%;
+                                    background-color: {% if analytics.assessment_average >= 80 %}#28a745{% elif analytics.assessment_average >= 60 %}#ffc107{% else %}#dc3545{% endif %};"
+                             aria-valuenow="{{ analytics.assessment_average }}"
+                             aria-valuemin="0"
+                             aria-valuemax="100">
+                            Average Score
+                        </div>
+                    </div>
+                    <p class="mt-3 text-center">
+                        <small class="text-muted">
+                            Highest: {{ analytics.highest_score|default(0) }}% |
+                            Lowest: {{ analytics.lowest_score|default(0) }}%
+                        </small>
+                    </p>
+                    {% else %}
+                    <p class="text-center text-muted mt-5">
+                        <i class="fas fa-info-circle me-2"></i>
+                        No assessments taken yet. Start your first assessment to track performance!
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    {% if analytics and analytics.recent_sessions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Activity</th>
+                                    <th>Duration</th>
+                                    <th>Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for session in analytics.recent_sessions[:10] %}
+                                <tr>
+                                    <td>{{ session.date }}</td>
+                                    <td>
+                                        <i class="fas fa-{{ session.type == 'assessment' and 'clipboard-check' or session.type == 'tutoring' and 'user-graduate' or 'book' }} me-2"></i>
+                                        {{ session.activity }}
+                                    </td>
+                                    <td>{{ session.duration }} min</td>
+                                    <td>
+                                        {% if session.score %}
+                                        <span class="badge bg-{{ session.score >= 80 and 'success' or session.score >= 60 and 'warning' or 'danger' }}">
+                                            {{ session.score }}%
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted">
+                        <i class="fas fa-info-circle me-2"></i>
+                        No recent activity. Start learning to see your progress here!
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Strengths & Improvement Areas -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>Strengths</h5>
+                </div>
+                <div class="card-body">
+                    {% if analytics and analytics.strengths %}
+                    <ul class="list-group list-group-flush">
+                        {% for strength in analytics.strengths %}
+                        <li class="list-group-item">
+                            <i class="fas fa-star text-warning me-2"></i>{{ strength }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted text-center">Complete more assessments to identify your strengths</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Areas for Improvement</h5>
+                </div>
+                <div class="card-body">
+                    {% if analytics and analytics.improvement_areas %}
+                    <ul class="list-group list-group-flush">
+                        {% for area in analytics.improvement_areas %}
+                        <li class="list-group-item">
+                            <i class="fas fa-arrow-up text-info me-2"></i>{{ area }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted text-center">Complete more assessments to identify areas for improvement</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <a href="{{ url_for('start_assessment') }}" class="btn btn-primary btn-lg me-2">
+                <i class="fas fa-clipboard-check me-2"></i>Take Assessment
+            </a>
+            <a href="{{ url_for('tutor') }}" class="btn btn-success btn-lg me-2">
+                <i class="fas fa-user-graduate me-2"></i>Start Tutoring
+            </a>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-lg">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

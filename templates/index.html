@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome - Jain AI Learning Ecosystem{% endblock %}
+
+{% block content %}
+<div class="hero-section bg-gradient-primary text-white py-5 mb-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">
+                    <i class="fas fa-om me-3"></i>
+                    Jain AI Learning Ecosystem
+                </h1>
+                <p class="lead mb-4">
+                    Comprehensive, modular AI-powered learning platform for Jainism targeting global audiences across different sects, languages, and knowledge levels.
+                </p>
+                <div class="feature-badges mb-4">
+                    <span class="badge bg-light text-dark me-2 p-2">
+                        <i class="fas fa-brain me-1"></i>AI-Powered
+                    </span>
+                    <span class="badge bg-light text-dark me-2 p-2">
+                        <i class="fas fa-globe me-1"></i>Multilingual
+                    </span>
+                    <span class="badge bg-light text-dark me-2 p-2">
+                        <i class="fas fa-users me-1"></i>All Sects
+                    </span>
+                    <span class="badge bg-light text-dark p-2">
+                        <i class="fas fa-mobile-alt me-1"></i>Responsive
+                    </span>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card shadow-lg border-0">
+                    <div class="card-header bg-white text-center">
+                        <h3 class="card-title text-primary mb-0">
+                            <i class="fas fa-user-plus me-2"></i>
+                            Start Your Journey
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="profileForm">
+                            <!-- Sect Selection -->
+                            <div class="mb-4">
+                                <label for="sect" class="form-label fw-bold">
+                                    <i class="fas fa-praying-hands me-2"></i>Select Your Tradition
+                                </label>
+                                <select class="form-select" id="sect" name="sect" required>
+                                    <option value="">Choose your Jain tradition...</option>
+                                    {% for sect in sects %}
+                                    <option value="{{ sect.code }}" data-description="{{ sect.description }}">
+                                        {{ sect.display_name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text" id="sectDescription"></div>
+                            </div>
+
+                            <!-- Language Selection -->
+                            <div class="mb-4">
+                                <label for="language" class="form-label fw-bold">
+                                    <i class="fas fa-language me-2"></i>Preferred Language
+                                </label>
+                                <select class="form-select" id="language" name="language" required>
+                                    <option value="">Select language...</option>
+                                    {% for lang in languages %}
+                                    <option value="{{ lang.code }}">
+                                        {{ lang.native_name }} ({{ lang.name }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Age Group -->
+                            <div class="mb-4">
+                                <label for="ageGroup" class="form-label fw-bold">
+                                    <i class="fas fa-birthday-cake me-2"></i>Age Group
+                                </label>
+                                <select class="form-select" id="ageGroup" name="age_group" required>
+                                    <option value="">Select your age group...</option>
+                                    <option value="child">Child (5-12 years)</option>
+                                    <option value="teen">Teenager (13-18 years)</option>
+                                    <option value="adult">Adult (19-65 years)</option>
+                                    <option value="senior">Senior (65+ years)</option>
+                                </select>
+                            </div>
+
+                            <!-- Knowledge Level -->
+                            <div class="mb-4">
+                                <label for="knowledgeLevel" class="form-label fw-bold">
+                                    <i class="fas fa-graduation-cap me-2"></i>Knowledge Level
+                                </label>
+                                <select class="form-select" id="knowledgeLevel" name="knowledge_level">
+                                    <option value="beginner">Beginner - New to Jainism</option>
+                                    <option value="intermediate">Intermediate - Basic understanding</option>
+                                    <option value="advanced">Advanced - Deep knowledge</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg w-100" id="submitProfile">
+                                <i class="fas fa-rocket me-2"></i>
+                                <span class="btn-text">Begin Learning Journey</span>
+                                <span class="btn-loading" style="display: none;">
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                    Setting up your profile...
+                                </span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container mb-5">
+    <div class="row text-center mb-5">
+        <div class="col-12">
+            <h2 class="display-5 fw-bold text-primary mb-3">Comprehensive Learning Modules</h2>
+            <p class="lead text-muted">Eight specialized modules designed for complete Jain education</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- JainPath -->
+        <div class="col-lg-3 col-md-6">
+            <div class="feature-card card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="feature-icon bg-primary text-white rounded-circle mx-auto mb-3">
+                        <i class="fas fa-route fa-2x"></i>
+                    </div>
+                    <h5 class="card-title">JainPath</h5>
+                    <p class="card-text text-muted">Guided Learning Journey with personalized paths and progress tracking</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- JainGPT -->
+        <div class="col-lg-3 col-md-6">
+            <div class="feature-card card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="feature-icon bg-success text-white rounded-circle mx-auto mb-3">
+                        <i class="fas fa-robot fa-2x"></i>
+                    </div>
+                    <h5 class="card-title">JainGPT</h5>
+                    <p class="card-text text-muted">AI Q&A Chatbot with PDF-based answers and sect-specific responses</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- JainQuiz -->
+        <div class="col-lg-3 col-md-6">
+            <div class="feature-card card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="feature-icon bg-info text-white rounded-circle mx-auto mb-3">
+                        <i class="fas fa-question-circle fa-2x"></i>
+                    </div>
+                    <h5 class="card-title">JainQuiz</h5>
+                    <p class="card-text text-muted">Gamified Quiz System with adaptive difficulty and leaderboards</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Jain Stories -->
+        <div class="col-lg-3 col-md-6">
+            <div class="feature-card card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="feature-icon bg-warning text-white rounded-circle mx-auto mb-3">
+                        <i class="fas fa-book-open fa-2x"></i>
+                    </div>
+                    <h5 class="card-title">Jain Stories & Saints</h5>
+                    <p class="card-text text-muted">Moral Stories and Biographies with age-appropriate content</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ahimsa Coach -->
+        <div class="col-lg-3 col-md-6">
+            <div class="feature-card card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="feature-icon bg-danger text-white rounded-circle mx-auto mb-3">
+                        <i class="fas fa-heart fa-2x"></i>
+                    </div>
+                    <h5 class="card-title">Ahimsa Coach</h5>
+                    <p class="card-text text-muted">Mindfulness and Non-violence Guide with daily practices</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TirthYatra AI -->
+        <div class="col-lg-3 col-md-6">
+            <div class="feature-card card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="feature-icon bg-secondary text-white rounded-circle mx-auto mb-3">
+                        <i class="fas fa-map-marked-alt fa-2x"></i>
+                    </div>
+                    <h5 class="card-title">TirthYatra AI</h5>
+                    <p class="card-text text-muted">Virtual Temple and Pilgrimage Guide with 360° tours</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pathshala Companion -->
+        <div class="col-lg-3 col-md-6">
+            <div class="feature-card card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="feature-icon bg-dark text-white rounded-circle mx-auto mb-3">
+                        <i class="fas fa-chalkboard-teacher fa-2x"></i>
+                    </div>
+                    <h5 class="card-title">Pathshala Companion</h5>
+                    <p class="card-text text-muted">Teacher Assistant Tool with lesson planning and assessment</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Text Explorer -->
+        <div class="col-lg-3 col-md-6">
+            <div class="feature-card card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="feature-icon bg-purple text-white rounded-circle mx-auto mb-3">
+                        <i class="fas fa-search fa-2x"></i>
+                    </div>
+                    <h5 class="card-title">Jain Text Explorer</h5>
+                    <p class="card-text text-muted">Research Tool with advanced search and scholarly annotations</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sect Information Section -->
+<div class="container mb-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Supporting All Jain Traditions
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        {% for sect in sects %}
+                        <div class="col-md-6 col-lg-3">
+                            <div class="sect-info-card p-3 border rounded h-100" style="border-color: {{ sect.colors.primary }}!important;">
+                                <h5 class="fw-bold" style="color: {{ sect.colors.primary }}">
+                                    {{ sect.display_name }}
+                                </h5>
+                                <p class="text-muted mb-2">{{ sect.description }}</p>
+                                <div class="sect-terminology">
+                                    <small class="text-muted">
+                                        <strong>Male Ascetics:</strong> {{ sect.male_ascetic }}<br>
+                                        <strong>Female Ascetics:</strong> {{ sect.female_ascetic }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Sect selection handler
+    const sectSelect = document.getElementById('sect');
+    const sectDescription = document.getElementById('sectDescription');
+
+    sectSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        if (selectedOption.dataset.description) {
+            sectDescription.textContent = selectedOption.dataset.description;
+            sectDescription.className = 'form-text text-muted';
+        } else {
+            sectDescription.textContent = '';
+        }
+    });
+
+    // Profile form submission
+    const profileForm = document.getElementById('profileForm');
+    const submitBtn = document.getElementById('submitProfile');
+
+    profileForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // Set button to loading state
+        setButtonLoading(submitBtn, true, 'Setting up your profile...');
+
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData);
+
+        fetch('/set_profile', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                window.location.href = result.redirect;
+            } else {
+                throw new Error(result.error || 'Failed to set profile');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error setting up profile: ' + error.message);
+        })
+        .finally(() => {
+            setButtonLoading(submitBtn, false, 'Begin Learning Journey');
+        });
+    });
+
+    // Feature card hover effects
+    document.querySelectorAll('.feature-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.transition = 'transform 0.3s ease';
+        });
+
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,472 @@
+{% extends "base.html" %}
+
+{% block title %}Assessment - Jain Learning Ecosystem{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Assessment Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-clipboard-check me-2"></i>
+                        Knowledge Assessment
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">Test your understanding and get personalized feedback based on your uploaded content.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assessment Setup -->
+    <div id="assessmentSetup">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <form id="setupForm">
+                            <div class="mb-4">
+                                <label for="difficulty" class="form-label fw-bold">
+                                    <i class="fas fa-signal me-2"></i>Difficulty Level
+                                </label>
+                                <select class="form-select" id="difficulty" name="difficulty">
+                                    <option value="easy">Easy - Basic concepts</option>
+                                    <option value="medium" selected>Medium - Standard level</option>
+                                    <option value="hard">Hard - Advanced topics</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="questionCount" class="form-label fw-bold">
+                                    <i class="fas fa-list-ol me-2"></i>Number of Questions
+                                </label>
+                                <select class="form-select" id="questionCount" name="question_count">
+                                    <option value="5">5 Questions - Quick test</option>
+                                    <option value="10" selected>10 Questions - Standard</option>
+                                    <option value="15">15 Questions - Comprehensive</option>
+                                    <option value="20">20 Questions - Full assessment</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg w-100" id="startAssessmentBtn">
+                                <span class="btn-text">
+                                    <i class="fas fa-play me-2"></i>Start Assessment
+                                </span>
+                                <span class="btn-loading" style="display: none;">
+                                    <span class="spinner-border spinner-border-sm me-2"></span>Creating assessment...
+                                </span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assessment Questions -->
+    <div id="assessmentQuestions" style="display: none;">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <span id="questionCounter">Question 1 of 10</span>
+                        </h5>
+                        <div class="timer" id="timer">
+                            <i class="fas fa-clock me-1"></i>
+                            <span id="timeRemaining">20:00</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="questionContent">
+                            <!-- Questions will be loaded here -->
+                        </div>
+                        <div class="d-flex justify-content-between mt-4">
+                            <button class="btn btn-outline-secondary" id="prevBtn" disabled>
+                                <i class="fas fa-chevron-left me-1"></i>Previous
+                            </button>
+                            <button class="btn btn-primary" id="nextBtn">
+                                Next<i class="fas fa-chevron-right ms-1"></i>
+                            </button>
+                            <button class="btn btn-success" id="submitBtn" style="display: none;">
+                                <i class="fas fa-check me-1"></i>Submit Assessment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header">
+                        <h6 class="mb-0">Question Navigator</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="questionNavigator">
+                            <!-- Question numbers will be displayed here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assessment Results -->
+    <div id="assessmentResults" style="display: none;">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-success text-white text-center">
+                        <h3 class="mb-0">
+                            <i class="fas fa-trophy me-2"></i>
+                            Assessment Complete!
+                        </h3>
+                    </div>
+                    <div class="card-body text-center" id="resultsContent">
+                        <!-- Results will be loaded here -->
+                    </div>
+                    <div class="card-footer text-center">
+                        <button class="btn btn-primary me-2" onclick="location.href='{{ url_for('dashboard') }}'">
+                            <i class="fas fa-home me-1"></i>Return to Dashboard
+                        </button>
+                        <button class="btn btn-outline-primary" onclick="location.reload()">
+                            <i class="fas fa-redo me-1"></i>Take Another Assessment
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentAssessment = null;
+let currentQuestion = 0;
+let userAnswers = {};
+let timer = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    const setupForm = document.getElementById('setupForm');
+    const startBtn = document.getElementById('startAssessmentBtn');
+
+    setupForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        startAssessment();
+    });
+
+    document.getElementById('nextBtn').addEventListener('click', nextQuestion);
+    document.getElementById('prevBtn').addEventListener('click', prevQuestion);
+    document.getElementById('submitBtn').addEventListener('click', submitAssessment);
+});
+
+function startAssessment() {
+    const formData = new FormData(document.getElementById('setupForm'));
+    const data = Object.fromEntries(formData);
+
+    setButtonLoading(document.getElementById('startAssessmentBtn'), true, 'Creating assessment...');
+
+    fetch('/create_assessment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            currentAssessment = result.assessment;
+            showAssessmentQuestions();
+            startTimer(currentAssessment.time_limit);
+        } else {
+            throw new Error(result.error || 'Failed to create assessment');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error creating assessment: ' + error.message);
+    })
+    .finally(() => {
+        setButtonLoading(document.getElementById('startAssessmentBtn'), false, 'Start Assessment');
+    });
+}
+
+function showAssessmentQuestions() {
+    document.getElementById('assessmentSetup').style.display = 'none';
+    document.getElementById('assessmentQuestions').style.display = 'block';
+
+    createQuestionNavigator();
+    displayQuestion(0);
+}
+
+function createQuestionNavigator() {
+    const navigator = document.getElementById('questionNavigator');
+    const questions = currentAssessment.questions;
+
+    let html = '<div class="row g-2">';
+    for (let i = 0; i < questions.length; i++) {
+        html += `
+            <div class="col-3">
+                <button class="btn btn-outline-secondary btn-sm w-100 question-nav-btn"
+                        data-question="${i}" onclick="goToQuestion(${i})">
+                    ${i + 1}
+                </button>
+            </div>
+        `;
+    }
+    html += '</div>';
+    navigator.innerHTML = html;
+}
+
+function displayQuestion(index) {
+    const question = currentAssessment.questions[index];
+    const questionContent = document.getElementById('questionContent');
+
+    document.getElementById('questionCounter').textContent =
+        `Question ${index + 1} of ${currentAssessment.questions.length}`;
+
+    let html = `
+        <div class="question-item mb-4">
+            <h5 class="question-text mb-4">${question.question}</h5>
+            <div class="options">
+    `;
+
+    if (question.type === 'multiple_choice') {
+        question.options.forEach((option, optionIndex) => {
+            const isChecked = userAnswers[question.id] === option ? 'checked' : '';
+            html += `
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="radio"
+                           name="question_${question.id}" value="${option}"
+                           id="option_${question.id}_${optionIndex}" ${isChecked}
+                           onchange="saveAnswer('${question.id}', this.value)">
+                    <label class="form-check-label" for="option_${question.id}_${optionIndex}">
+                        ${option}
+                    </label>
+                </div>
+            `;
+        });
+    } else if (question.type === 'true_false') {
+        const trueChecked = userAnswers[question.id] === 'True' ? 'checked' : '';
+        const falseChecked = userAnswers[question.id] === 'False' ? 'checked' : '';
+        html += `
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="radio"
+                       name="question_${question.id}" value="True"
+                       id="true_${question.id}" ${trueChecked}
+                       onchange="saveAnswer('${question.id}', this.value)">
+                <label class="form-check-label" for="true_${question.id}">True</label>
+            </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="radio"
+                       name="question_${question.id}" value="False"
+                       id="false_${question.id}" ${falseChecked}
+                       onchange="saveAnswer('${question.id}', this.value)">
+                <label class="form-check-label" for="false_${question.id}">False</label>
+            </div>
+        `;
+    } else if (question.type === 'short_answer') {
+        const currentAnswer = userAnswers[question.id] || '';
+        html += `
+            <textarea class="form-control" rows="4"
+                      placeholder="Enter your answer here..."
+                      onchange="saveAnswer('${question.id}', this.value)">${currentAnswer}</textarea>
+        `;
+    }
+
+    html += `
+            </div>
+        </div>
+    `;
+
+    questionContent.innerHTML = html;
+    updateNavigationButtons();
+    updateQuestionNavigator();
+}
+
+function saveAnswer(questionId, answer) {
+    userAnswers[questionId] = answer;
+    updateQuestionNavigator();
+}
+
+function updateQuestionNavigator() {
+    const buttons = document.querySelectorAll('.question-nav-btn');
+    buttons.forEach((btn, index) => {
+        const questionId = currentAssessment.questions[index].id;
+        btn.classList.remove('btn-success', 'btn-primary', 'btn-outline-secondary');
+
+        if (index === currentQuestion) {
+            btn.classList.add('btn-primary');
+        } else if (userAnswers[questionId]) {
+            btn.classList.add('btn-success');
+        } else {
+            btn.classList.add('btn-outline-secondary');
+        }
+    });
+}
+
+function updateNavigationButtons() {
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const submitBtn = document.getElementById('submitBtn');
+
+    prevBtn.disabled = currentQuestion === 0;
+
+    if (currentQuestion === currentAssessment.questions.length - 1) {
+        nextBtn.style.display = 'none';
+        submitBtn.style.display = 'inline-block';
+    } else {
+        nextBtn.style.display = 'inline-block';
+        submitBtn.style.display = 'none';
+    }
+}
+
+function nextQuestion() {
+    if (currentQuestion < currentAssessment.questions.length - 1) {
+        currentQuestion++;
+        displayQuestion(currentQuestion);
+    }
+}
+
+function prevQuestion() {
+    if (currentQuestion > 0) {
+        currentQuestion--;
+        displayQuestion(currentQuestion);
+    }
+}
+
+function goToQuestion(index) {
+    currentQuestion = index;
+    displayQuestion(currentQuestion);
+}
+
+function startTimer(minutes) {
+    let timeLeft = minutes * 60;
+    const timerDisplay = document.getElementById('timeRemaining');
+
+    timer = setInterval(() => {
+        const mins = Math.floor(timeLeft / 60);
+        const secs = timeLeft % 60;
+        timerDisplay.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            submitAssessment();
+        }
+        timeLeft--;
+    }, 1000);
+}
+
+function submitAssessment() {
+    if (timer) clearInterval(timer);
+
+    const submitBtn = document.getElementById('submitBtn');
+    setButtonLoading(submitBtn, true, 'Submitting...');
+
+    fetch('/submit_assessment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answers: userAnswers })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            showResults(result.results);
+        } else {
+            throw new Error(result.error || 'Failed to submit assessment');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error submitting assessment: ' + error.message);
+    })
+    .finally(() => {
+        setButtonLoading(submitBtn, false, 'Submit Assessment');
+    });
+}
+
+function showResults(results) {
+    document.getElementById('assessmentQuestions').style.display = 'none';
+    document.getElementById('assessmentResults').style.display = 'block';
+
+    const resultsContent = document.getElementById('resultsContent');
+
+    let html = `
+        <div class="score-display mb-4">
+            <div class="display-4 fw-bold text-primary mb-2">${results.percentage}%</div>
+            <div class="h5 text-muted">${results.correct_answers} of ${results.total_questions} correct</div>
+        </div>
+
+        <div class="progress mb-4" style="height: 20px;">
+            <div class="progress-bar bg-${getScoreColor(results.percentage)}"
+                 style="width: ${results.percentage}%"></div>
+        </div>
+
+        <div class="knowledge-level mb-4">
+            <h6>Knowledge Level: <span class="badge bg-${getKnowledgeLevelColor(results.knowledge_level)} fs-6">${results.knowledge_level.toUpperCase()}</span></h6>
+        </div>
+    `;
+
+    if (results.feedback) {
+        html += `
+            <div class="feedback-section text-start">
+                <h6 class="fw-bold mb-3">Feedback & Recommendations:</h6>
+
+                ${results.feedback.overall_performance ? `
+                    <div class="alert alert-info mb-3">
+                        <strong>Overall Performance:</strong> ${results.feedback.overall_performance}
+                    </div>
+                ` : ''}
+
+                ${results.feedback.strengths && results.feedback.strengths.length > 0 ? `
+                    <div class="mb-3">
+                        <h6 class="text-success"><i class="fas fa-check-circle me-2"></i>Strengths:</h6>
+                        <ul class="mb-0">
+                            ${results.feedback.strengths.map(strength => `<li>${strength}</li>`).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+
+                ${results.feedback.improvement_areas && results.feedback.improvement_areas.length > 0 ? `
+                    <div class="mb-3">
+                        <h6 class="text-warning"><i class="fas fa-exclamation-triangle me-2"></i>Areas for Improvement:</h6>
+                        <ul class="mb-0">
+                            ${results.feedback.improvement_areas.map(area => `<li>${area}</li>`).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+
+                ${results.feedback.recommendations && results.feedback.recommendations.length > 0 ? `
+                    <div class="mb-3">
+                        <h6 class="text-primary"><i class="fas fa-lightbulb me-2"></i>Recommendations:</h6>
+                        <ul class="mb-0">
+                            ${results.feedback.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
+
+    resultsContent.innerHTML = html;
+}
+
+function getScoreColor(percentage) {
+    if (percentage >= 90) return 'success';
+    if (percentage >= 75) return 'primary';
+    if (percentage >= 60) return 'warning';
+    return 'danger';
+}
+
+function getKnowledgeLevelColor(level) {
+    switch (level) {
+        case 'advanced': return 'success';
+        case 'intermediate': return 'primary';
+        case 'beginner': return 'warning';
+        default: return 'secondary';
+    }
+}
+</script>
+{% endblock %}

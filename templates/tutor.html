@@ -1,0 +1,515 @@
+{% extends "base.html" %}
+
+{% block title %}AI Tutor - Jain Learning Ecosystem{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Chat Area -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-robot me-2"></i>
+                        AI Tutor - Personal Learning Assistant
+                    </h5>
+                    <small class="opacity-75">Context-aware guidance for {{ session.sect|title }} tradition</small>
+                </div>
+                <div class="card-body d-flex flex-column" style="height: 70vh;">
+                    <!-- Chat Messages -->
+                    <div class="chat-container flex-grow-1 mb-3" id="chatContainer">
+                        <div class="chat-messages" id="chatMessages">
+                            <div class="message tutor-message" id="welcomeMessage">
+                                <div class="message-content">
+                                    <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                                    Starting your tutoring session...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat Input -->
+                    <div class="chat-input-container">
+                        <form id="chatForm">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="messageInput"
+                                       placeholder="Ask me anything about Jainism..." disabled>
+                                <button class="btn btn-primary" type="submit" id="sendBtn" disabled>
+                                    <span class="btn-text">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </span>
+                                    <span class="btn-loading" style="display: none;">
+                                        <span class="spinner-border spinner-border-sm"></span>
+                                    </span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Session Info -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Session Info
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="session-stats" id="sessionStats">
+                        <div class="stat-item d-flex justify-content-between mb-2">
+                            <span class="text-muted">Questions Asked:</span>
+                            <span class="fw-bold" id="questionsCount">0</span>
+                        </div>
+                        <div class="stat-item d-flex justify-content-between mb-2">
+                            <span class="text-muted">Topics Covered:</span>
+                            <span class="fw-bold" id="topicsCount">0</span>
+                        </div>
+                        <div class="stat-item d-flex justify-content-between">
+                            <span class="text-muted">Session Time:</span>
+                            <span class="fw-bold" id="sessionTime">00:00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Topics -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        Quick Topics
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="topic-suggestions" id="topicSuggestions">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary btn-sm topic-btn" onclick="askAboutTopic('What is Ahimsa?')">
+                                What is Ahimsa?
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm topic-btn" onclick="askAboutTopic('Tell me about Tirthankaras')">
+                                Tell me about Tirthankaras
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm topic-btn" onclick="askAboutTopic('Explain Karma theory')">
+                                Explain Karma theory
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm topic-btn" onclick="askAboutTopic('What are the Five Vows?')">
+                                What are the Five Vows?
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Learning Suggestions -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-graduation-cap me-2"></i>
+                        Learning Suggestions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="learningSuggestions">
+                        <div class="suggestion-item mb-3">
+                            <div class="d-flex align-items-start">
+                                <div class="suggestion-icon text-primary me-2 mt-1">
+                                    <i class="fas fa-book"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold small">Study Tip</div>
+                                    <div class="text-muted smaller">Ask follow-up questions to deepen your understanding</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="suggestion-item mb-3">
+                            <div class="d-flex align-items-start">
+                                <div class="suggestion-icon text-success me-2 mt-1">
+                                    <i class="fas fa-clipboard-check"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold small">Assessment</div>
+                                    <div class="text-muted smaller">Test your knowledge after each topic</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="suggestion-item">
+                            <div class="d-flex align-items-start">
+                                <div class="suggestion-icon text-info me-2 mt-1">
+                                    <i class="fas fa-upload"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold small">Upload Content</div>
+                                    <div class="text-muted smaller">Add PDFs for personalized answers</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let tutorSession = null;
+let sessionStartTime = null;
+let sessionTimer = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    startTutoringSession();
+
+    const chatForm = document.getElementById('chatForm');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    chatForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        sendMessage();
+    });
+
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+});
+
+function startTutoringSession() {
+    fetch('/start_tutoring', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            tutorSession = result.session;
+            displayWelcomeMessage(result.session.message);
+            enableChat();
+            updateTopicSuggestions(result.session.topic_suggestions);
+            startSessionTimer();
+        } else {
+            displayError('Failed to start tutoring session: ' + result.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        displayError('Error starting tutoring session');
+    });
+}
+
+function displayWelcomeMessage(message) {
+    const welcomeMsg = document.getElementById('welcomeMessage');
+    welcomeMsg.innerHTML = `
+        <div class="message-avatar">
+            <i class="fas fa-robot"></i>
+        </div>
+        <div class="message-content">
+            <div class="message-text">${message}</div>
+            <div class="message-time">${formatTime(new Date())}</div>
+        </div>
+    `;
+}
+
+function enableChat() {
+    document.getElementById('messageInput').disabled = false;
+    document.getElementById('sendBtn').disabled = false;
+    document.getElementById('messageInput').focus();
+}
+
+function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const message = messageInput.value.trim();
+
+    if (!message) return;
+
+    // Display user message
+    addMessageToChat(message, 'user');
+    messageInput.value = '';
+
+    // Set button to loading state
+    setButtonLoading(document.getElementById('sendBtn'), true);
+
+    // Send to tutor
+    fetch('/tutor_chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            message: message,
+            type: 'question'
+        })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            handleTutorResponse(result.response);
+        } else {
+            addMessageToChat('Sorry, I encountered an error processing your message.', 'tutor');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        addMessageToChat('Sorry, there was a connection error.', 'tutor');
+    })
+    .finally(() => {
+        setButtonLoading(document.getElementById('sendBtn'), false);
+    });
+}
+
+function askAboutTopic(topic) {
+    document.getElementById('messageInput').value = topic;
+    sendMessage();
+}
+
+function formatAnswerText(text) {
+    if (!text) return '';
+
+    // Remove reference markers like [1], [2], etc.
+    text = text.replace(/\[\d+\]/g, '');
+
+    // Remove URL references
+    text = text.replace(/https?:\/\/[^\s]+/g, '');
+
+    // Convert markdown-style bold **text** to HTML
+    text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+    // Convert markdown-style italic *text* to HTML
+    text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+    // Convert bullet points
+    text = text.replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>');
+    if (text.includes('<li>')) {
+        text = text.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+    }
+
+    // Convert line breaks to proper HTML
+    const paragraphs = text.split('\n\n').filter(p => p.trim());
+    if (paragraphs.length > 1) {
+        text = paragraphs.map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`).join('');
+    } else {
+        text = text.replace(/\n/g, '<br>');
+    }
+
+    return text;
+}
+
+function handleTutorResponse(result) {
+    // The response comes in result.response
+    const response = result.response || result;
+
+    // Extract main answer text
+    let responseText = '';
+    if (typeof response === 'string') {
+        responseText = response;
+    } else if (response.main_answer) {
+        responseText = response.main_answer;
+    } else if (response.answer) {
+        responseText = response.answer;
+    } else {
+        // Fallback: stringify the response if it's an object
+        responseText = 'I received your message but had trouble formatting the response.';
+        console.warn('Unexpected response format:', response);
+    }
+
+    // Format the response text properly
+    responseText = formatAnswerText(responseText);
+
+    // Add main response
+    addMessageToChat(responseText, 'tutor');
+
+    // Add key points if available
+    if (response.key_points && Array.isArray(response.key_points) && response.key_points.length > 0) {
+        const keyPointsHtml = `
+            <div class="key-points mt-3">
+                <h6 class="fw-bold"><i class="fas fa-key me-2"></i>Key Points:</h6>
+                <ul class="mb-0">
+                    ${response.key_points.map(point => `<li>${point}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+        addMessageToChat(keyPointsHtml, 'tutor-info');
+    }
+
+    // Add comprehension questions if available
+    const comprehensionQuestions = response.tutoring_elements?.comprehension_questions;
+    if (comprehensionQuestions && Array.isArray(comprehensionQuestions) && comprehensionQuestions.length > 0) {
+        const questionsHtml = `
+            <div class="comprehension-questions mt-3">
+                <h6 class="fw-bold"><i class="fas fa-question-circle me-2"></i>Think About:</h6>
+                <div class="questions">
+                    ${comprehensionQuestions.map(q =>
+                        `<div class="question-item mb-2 p-2 bg-light rounded">${q}</div>`
+                    ).join('')}
+                </div>
+            </div>
+        `;
+        addMessageToChat(questionsHtml, 'tutor-activity');
+    }
+
+    // Add follow-up suggestions
+    const followUpQuestions = result.follow_up?.questions;
+    if (followUpQuestions && Array.isArray(followUpQuestions) && followUpQuestions.length > 0) {
+        const followUpHtml = `
+            <div class="follow-up mt-3">
+                <h6 class="fw-bold"><i class="fas fa-arrow-right me-2"></i>Continue Learning:</h6>
+                <div class="follow-up-questions">
+                    ${followUpQuestions.map(q =>
+                        `<button class="btn btn-outline-primary btn-sm me-2 mb-2" onclick="askAboutTopic('${q}')">${q}</button>`
+                    ).join('')}
+                </div>
+            </div>
+        `;
+        addMessageToChat(followUpHtml, 'tutor-follow');
+    }
+
+    // Update session stats
+    updateSessionStats(result);
+
+    // Update learning suggestions
+    if (result.learning_suggestions && Array.isArray(result.learning_suggestions) && result.learning_suggestions.length > 0) {
+        updateLearningSuggestions(result.learning_suggestions);
+    }
+}
+
+function addMessageToChat(content, type) {
+    const chatMessages = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}-message`;
+
+    if (type === 'user') {
+        messageDiv.innerHTML = `
+            <div class="message-content">
+                <div class="message-text">${content}</div>
+                <div class="message-time">${formatTime(new Date())}</div>
+            </div>
+            <div class="message-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+        `;
+    } else {
+        messageDiv.innerHTML = `
+            <div class="message-avatar">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="message-content">
+                <div class="message-text">${content}</div>
+                <div class="message-time">${formatTime(new Date())}</div>
+            </div>
+        `;
+    }
+
+    chatMessages.appendChild(messageDiv);
+    scrollToBottom();
+}
+
+function scrollToBottom() {
+    const chatContainer = document.getElementById('chatContainer');
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+function updateSessionStats(response) {
+    const stats = response.session_progress || {};
+
+    document.getElementById('questionsCount').textContent = stats.questions_answered || 0;
+    document.getElementById('topicsCount').textContent = (response.topics_covered || []).length;
+}
+
+function updateTopicSuggestions(suggestions) {
+    if (!suggestions || suggestions.length === 0) return;
+
+    const container = document.getElementById('topicSuggestions');
+    let html = '<div class="d-grid gap-2">';
+
+    suggestions.forEach(suggestion => {
+        html += `<button class="btn btn-outline-primary btn-sm topic-btn" onclick="askAboutTopic('${suggestion}')">${suggestion}</button>`;
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function updateLearningSuggestions(suggestions) {
+    const container = document.getElementById('learningSuggestions');
+    let html = '';
+
+    suggestions.forEach(suggestion => {
+        const icon = getSuggestionIcon(suggestion.type);
+        html += `
+            <div class="suggestion-item mb-3">
+                <div class="d-flex align-items-start">
+                    <div class="suggestion-icon text-primary me-2 mt-1">
+                        <i class="fas ${icon}"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold small">${suggestion.title}</div>
+                        <div class="text-muted smaller">${suggestion.description}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    if (html) {
+        container.innerHTML = html;
+    }
+}
+
+function getSuggestionIcon(type) {
+    const icons = {
+        'related_topic': 'fa-link',
+        'practice': 'fa-dumbbell',
+        'deeper_study': 'fa-search-plus',
+        'assessment': 'fa-clipboard-check'
+    };
+    return icons[type] || 'fa-lightbulb';
+}
+
+function startSessionTimer() {
+    sessionStartTime = new Date();
+    sessionTimer = setInterval(updateSessionTime, 1000);
+}
+
+function updateSessionTime() {
+    if (!sessionStartTime) return;
+
+    const now = new Date();
+    const elapsed = now - sessionStartTime;
+    const minutes = Math.floor(elapsed / 60000);
+    const seconds = Math.floor((elapsed % 60000) / 1000);
+
+    document.getElementById('sessionTime').textContent =
+        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function formatTime(date) {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function displayError(message) {
+    const welcomeMsg = document.getElementById('welcomeMessage');
+    welcomeMsg.innerHTML = `
+        <div class="message-avatar">
+            <i class="fas fa-exclamation-triangle text-warning"></i>
+        </div>
+        <div class="message-content">
+            <div class="message-text text-danger">${message}</div>
+        </div>
+    `;
+}
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', function() {
+    if (sessionTimer) {
+        clearInterval(sessionTimer);
+    }
+});
+</script>
+{% endblock %}

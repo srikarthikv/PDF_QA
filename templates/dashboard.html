@@ -1,0 +1,678 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Jain Learning Ecosystem{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="welcome-banner bg-gradient-primary text-white rounded-3 p-4">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <h2 class="fw-bold mb-2">
+                            <i class="fas fa-namaste me-3"></i>
+                            Welcome back to your learning journey!
+                        </h2>
+                        <p class="mb-0 opacity-90">
+                            {{ sect|title }} tradition • {{ language|upper }} language •
+                            Level: {{ user_progress.overall_knowledge_level|title }}
+                        </p>
+                    </div>
+                    <div class="col-lg-4 text-lg-end">
+                        <div class="streak-info">
+                            <div class="d-flex align-items-center justify-content-lg-end">
+                                <div class="streak-icon me-3">
+                                    <i class="fas fa-fire fa-2x text-warning"></i>
+                                </div>
+                                <div>
+                                    <div class="h4 mb-0">{{ user_progress.current_streak }}</div>
+                                    <small>Day Streak</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-primary text-white rounded-circle me-3">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div>
+                            <div class="h4 mb-0">{{ user_progress.total_study_time or 0 }}</div>
+                            <small class="text-muted">Minutes Studied</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-success text-white rounded-circle me-3">
+                            <i class="fas fa-clipboard-check"></i>
+                        </div>
+                        <div>
+                            <div class="h4 mb-0">{{ user_progress.assessments_taken|length or 0 }}</div>
+                            <small class="text-muted">Assessments Taken</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-info text-white rounded-circle me-3">
+                            <i class="fas fa-medal"></i>
+                        </div>
+                        <div>
+                            <div class="h4 mb-0">{{ user_progress.achievements|length or 0 }}</div>
+                            <small class="text-muted">Achievements</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-warning text-white rounded-circle me-3">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div>
+                            <div class="h4 mb-0">{{ user_progress.topics_mastered|length or 0 }}</div>
+                            <small class="text-muted">Topics Mastered</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="row">
+        <!-- Left Column - Learning Modules -->
+        <div class="col-lg-8">
+            <!-- Content Upload Section - Always visible -->
+            <div class="card border-0 shadow-sm mb-4 {% if not content_available %}border-warning{% endif %}">
+                <div class="card-header {% if not content_available %}bg-warning bg-opacity-10{% endif %}">
+                    <h5 class="card-title mb-0 {% if not content_available %}text-warning{% endif %}">
+                        <i class="fas fa-upload me-2"></i>
+                        Upload Content
+                        {% if content_available %}
+                        <span class="badge bg-success ms-2">
+                            <i class="fas fa-check me-1"></i>Content Available
+                        </span>
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if not content_available %}
+                    <p class="text-muted mb-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Upload PDF files specific to {{ sect|title }} tradition to get personalized, content-based answers and assessments.
+                    </p>
+                    {% else %}
+                    <p class="text-muted mb-3">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        You have uploaded content. Add more PDFs to expand your knowledge base.
+                    </p>
+                    {% endif %}
+                    <div class="upload-area border-2 border-dashed {% if not content_available %}border-warning{% else %}border-primary{% endif %} rounded-3 p-4 text-center" id="uploadArea">
+                        <input type="file" id="pdfUpload" accept=".pdf" multiple style="display: none;">
+                        <div class="upload-content">
+                            <i class="fas fa-cloud-upload-alt fa-3x {% if not content_available %}text-warning{% else %}text-primary{% endif %} mb-3"></i>
+                            <h6 class="fw-bold">Drop PDF files here or click to browse</h6>
+                            <p class="text-muted mb-0">Supports multiple PDFs • Max 100MB per file</p>
+                        </div>
+                    </div>
+                    <button class="btn {% if not content_available %}btn-warning{% else %}btn-primary{% endif %} btn-sm mt-3" id="uploadBtn">
+                        <i class="fas fa-plus me-1"></i>
+                        <span class="btn-text">Select PDFs</span>
+                        <span class="btn-loading" style="display: none;">
+                            <span class="spinner-border spinner-border-sm me-1"></span>Uploading...
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Learning Modules Grid -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-graduation-cap me-2"></i>
+                        Learning Modules
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <!-- AI Tutor -->
+                        <div class="col-md-6">
+                            <div class="module-card card border-0 bg-light h-100 cursor-pointer" onclick="location.href='{{ url_for('tutor') }}'">
+                                <div class="card-body text-center">
+                                    <div class="module-icon bg-primary text-white rounded-circle mx-auto mb-3">
+                                        <i class="fas fa-robot fa-2x"></i>
+                                    </div>
+                                    <h6 class="fw-bold">AI Tutor</h6>
+                                    <p class="text-muted small mb-0">Get personalized guidance and answers</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Take Assessment -->
+                        <div class="col-md-6">
+                            <div class="module-card card border-0 bg-light h-100 cursor-pointer" onclick="location.href='{{ url_for('start_assessment') }}'">
+                                <div class="card-body text-center">
+                                    <div class="module-icon bg-success text-white rounded-circle mx-auto mb-3">
+                                        <i class="fas fa-clipboard-check fa-2x"></i>
+                                    </div>
+                                    <h6 class="fw-bold">Take Assessment</h6>
+                                    <p class="text-muted small mb-0">Test your knowledge and track progress</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Learning Path -->
+                        <div class="col-md-6">
+                            <div class="module-card card border-0 bg-light h-100 cursor-pointer" onclick="location.href='{{ url_for('learning_path') }}'">
+                                <div class="card-body text-center">
+                                    <div class="module-icon bg-info text-white rounded-circle mx-auto mb-3">
+                                        <i class="fas fa-route fa-2x"></i>
+                                    </div>
+                                    <h6 class="fw-bold">Learning Path</h6>
+                                    <p class="text-muted small mb-0">Follow a structured learning journey</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- View Progress -->
+                        <div class="col-md-6">
+                            <div class="module-card card border-0 bg-light h-100 cursor-pointer" onclick="location.href='{{ url_for('progress') }}'">
+                                <div class="card-body text-center">
+                                    <div class="module-icon bg-warning text-white rounded-circle mx-auto mb-3">
+                                        <i class="fas fa-chart-line fa-2x"></i>
+                                    </div>
+                                    <h6 class="fw-bold">View Progress</h6>
+                                    <p class="text-muted small mb-0">Detailed analytics and achievements</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Q&A -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-question-circle me-2"></i>
+                        Quick Q&A
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="questionForm">
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" id="questionInput"
+                                   placeholder="Ask any question about Jainism..." required>
+                            <button class="btn btn-primary" type="submit" id="askBtn">
+                                <span class="btn-text">
+                                    <i class="fas fa-paper-plane me-1"></i>Ask
+                                </span>
+                                <span class="btn-loading" style="display: none;">
+                                    <span class="spinner-border spinner-border-sm me-1"></span>Thinking...
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                    <div id="answerArea" style="display: none;">
+                        <div class="alert alert-light border" id="answerContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Sidebar -->
+        <div class="col-lg-4">
+            <!-- Recent Activity -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-history me-2"></i>
+                        Recent Activity
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if user_progress.learning_sessions %}
+                    <div class="activity-timeline">
+                        {% for session in user_progress.learning_sessions[-3:] %}
+                        <div class="activity-item d-flex align-items-center mb-3">
+                            <div class="activity-icon bg-primary text-white rounded-circle me-3">
+                                <i class="fas fa-book-open"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold small">Study Session</div>
+                                <div class="text-muted smaller">
+                                    {{ session.duration or 0 }} minutes •
+                                    {{ session.timestamp[:10] if session.timestamp else 'Recently' }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-clock fa-2x mb-2"></i>
+                        <div>No recent activity</div>
+                        <small>Start learning to see your progress here</small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Achievements -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-trophy me-2"></i>
+                        Latest Achievements
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if user_progress.achievements %}
+                    <div class="achievements-list">
+                        {% for achievement in user_progress.achievements[-3:] %}
+                        <div class="achievement-item d-flex align-items-center mb-3 p-2 bg-light rounded">
+                            <div class="achievement-icon text-warning me-3">
+                                <i class="fas fa-medal fa-lg"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold small">{{ achievement.title }}</div>
+                                <div class="text-muted smaller">{{ achievement.description }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-trophy fa-2x mb-2"></i>
+                        <div>No achievements yet</div>
+                        <small>Complete activities to earn badges</small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Tips -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        Learning Tip
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="tip-content">
+                        <div class="tip-icon text-primary mb-2">
+                            <i class="fas fa-quote-left"></i>
+                        </div>
+                        <p class="small mb-2" id="dailyTip">
+                            Regular practice and reflection are key to understanding Jain philosophy.
+                            Try to connect the teachings with your daily life.
+                        </p>
+                        <small class="text-muted">Daily Wisdom</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // PDF Upload functionality
+    const uploadArea = document.getElementById('uploadArea');
+    const pdfUpload = document.getElementById('pdfUpload');
+    const uploadBtn = document.getElementById('uploadBtn');
+
+    if (uploadArea && pdfUpload && uploadBtn) {
+        // Click to upload
+        uploadArea.addEventListener('click', () => pdfUpload.click());
+        uploadBtn.addEventListener('click', () => pdfUpload.click());
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('drag-over');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        pdfUpload.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+    }
+
+    function handleFiles(files) {
+        Array.from(files).forEach(file => {
+            if (file.type === 'application/pdf') {
+                uploadFile(file);
+            } else {
+                alert('Please select only PDF files.');
+            }
+        });
+    }
+
+    function uploadFile(file) {
+        const formData = new FormData();
+        formData.append('pdf_file', file);
+
+        setButtonLoading(uploadBtn, true, 'Uploading...');
+
+        fetch('/upload_pdf', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                showSuccess(`Successfully uploaded ${file.name}: ${result.chunks} sections processed`);
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                throw new Error(result.error || 'Upload failed');
+            }
+        })
+        .catch(error => {
+            console.error('Upload error:', error);
+            showError('Upload failed: ' + error.message);
+        })
+        .finally(() => {
+            setButtonLoading(uploadBtn, false, 'Select PDFs');
+        });
+    }
+
+    // Quick Q&A functionality
+    const questionForm = document.getElementById('questionForm');
+    const questionInput = document.getElementById('questionInput');
+    const askBtn = document.getElementById('askBtn');
+    const answerArea = document.getElementById('answerArea');
+    const answerContent = document.getElementById('answerContent');
+
+    questionForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const question = questionInput.value.trim();
+        if (!question) return;
+
+        setButtonLoading(askBtn, true, 'Thinking...');
+
+        fetch('/ask_question', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ question: question })
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                displayAnswer(result);
+                questionInput.value = '';
+            } else {
+                throw new Error(result.error || 'Failed to get answer');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            answerContent.innerHTML = `<div class="text-danger">Error: ${error.message}</div>`;
+            answerArea.style.display = 'block';
+        })
+        .finally(() => {
+            setButtonLoading(askBtn, false, 'Ask');
+        });
+    });
+
+    function formatAnswerText(text) {
+        // Remove reference markers like [1], [2], etc.
+        text = text.replace(/\[\d+\]/g, '');
+
+        // Remove URL references
+        text = text.replace(/https?:\/\/[^\s]+/g, '');
+
+        // Convert markdown-style bold **text** to HTML
+        text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+        // Convert markdown-style italic *text* to HTML
+        text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+        // Convert bullet points
+        text = text.replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>');
+        if (text.includes('<li>')) {
+            text = text.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+        }
+
+        // Convert line breaks to paragraphs
+        const paragraphs = text.split('\n\n').filter(p => p.trim());
+        if (paragraphs.length > 1) {
+            text = paragraphs.map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`).join('');
+        } else {
+            text = text.replace(/\n/g, '<br>');
+        }
+
+        return text;
+    }
+
+    function extractSections(answerText) {
+        const sections = {
+            mainAnswer: '',
+            curiousTopics: [],
+            relatedQuestions: [],
+            source: ''
+        };
+
+        // Extract "Curious to Learn More" section
+        const curiousMatch = answerText.match(/Curious to Learn More\? Explore These Key Areas:(.*?)(?=Here are Some Related Questions:|Source:|$)/s);
+        if (curiousMatch) {
+            const topicsText = curiousMatch[1].trim();
+            sections.curiousTopics = topicsText.split('\n')
+                .map(t => t.trim())
+                .filter(t => t.length > 0 && !t.startsWith('Here are'));
+        }
+
+        // Extract "Related Questions" section
+        const questionsMatch = answerText.match(/Here are Some Related Questions:(.*?)(?=Source:|$)/s);
+        if (questionsMatch) {
+            const questionsText = questionsMatch[1].trim();
+            sections.relatedQuestions = questionsText.split('\n')
+                .map(q => q.trim().replace(/^\d+\.\s*/, ''))
+                .filter(q => q.length > 0 && q.endsWith('?'));
+        }
+
+        // Extract Source (both English and Hindi)
+        const sourceMatch = answerText.match(/(?:Source|स्रोत):(.*?)$/s);
+        if (sourceMatch) {
+            sections.source = sourceMatch[1].trim();
+        }
+
+        // Get main answer (everything before "Curious to Learn More" or "जिज्ञासु हैं")
+        const mainAnswerMatch = answerText.match(/(.*?)(?=Curious to Learn More|जिज्ञासु हैं|$)/s);
+        if (mainAnswerMatch) {
+            sections.mainAnswer = mainAnswerMatch[1].trim();
+        }
+
+        return sections;
+    }
+
+    function displayAnswer(result) {
+        const sections = extractSections(result.answer);
+
+        // Use related_topics from the backend if available, otherwise extract from answer text
+        const relatedTopics = (result.related_topics && result.related_topics.length > 0)
+            ? result.related_topics
+            : sections.curiousTopics;
+
+        let html = `
+            <div class="answer-main mb-3">
+                <h6 class="fw-bold mb-2">
+                    <i class="fas fa-comment-alt me-2"></i>Answer:
+                </h6>
+                <div class="answer-text">${formatAnswerText(sections.mainAnswer)}</div>
+            </div>
+        `;
+
+        // Display "Curious to Learn More" as clickable buttons
+        if (relatedTopics.length > 0) {
+            html += `
+                <div class="curious-topics mb-3">
+                    <h6 class="fw-bold mb-2">
+                        <i class="fas fa-lightbulb me-2"></i>जिज्ञासु हैं? इन मुख्य क्षेत्रों का अन्वेषण करें: 💫
+                    </h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        ${relatedTopics.map(topic =>
+                            `<button class="btn btn-outline-primary btn-sm topic-btn" data-query="${escapeHtml(topic)}">${escapeHtml(topic)}</button>`
+                        ).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Display Related Questions as clickable buttons
+        if (sections.relatedQuestions.length > 0) {
+            html += `
+                <div class="related-questions mb-3">
+                    <h6 class="fw-bold mb-2">
+                        <i class="fas fa-question-circle me-2"></i>Here are Some Related Questions:
+                    </h6>
+                    <div class="d-grid gap-2">
+                        ${sections.relatedQuestions.map((question, idx) =>
+                            `<button class="btn btn-outline-secondary btn-sm text-start question-btn" data-query="${escapeHtml(question)}">
+                                ${idx + 1}. ${escapeHtml(question)}
+                            </button>`
+                        ).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Display Source - use sources array from backend if available
+        const sources = result.sources && result.sources.length > 0 ? result.sources : [sections.source];
+        if (sources.length > 0 && sources[0]) {
+            html += `
+                <div class="source-info mt-3">
+                    <h6 class="fw-bold mb-2">
+                        <i class="fas fa-book me-2"></i>स्रोत:
+                    </h6>
+                    <p class="text-muted small mb-0">${escapeHtml(sources[0])}</p>
+                </div>
+            `;
+        }
+
+        if (!result.based_on_content) {
+            html += `
+                <div class="alert alert-info mt-3 mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <small>This answer is based on general knowledge. Upload content for personalized responses.</small>
+                </div>
+            `;
+        }
+
+        answerContent.innerHTML = html;
+        answerArea.style.display = 'block';
+
+        // Add event listeners to buttons
+        document.querySelectorAll('.topic-btn, .question-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const query = this.getAttribute('data-query');
+                questionInput.value = query;
+                questionForm.dispatchEvent(new Event('submit'));
+            });
+        });
+
+        answerArea.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Module card hover effects
+    document.querySelectorAll('.module-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.transition = 'transform 0.2s ease';
+        });
+
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+
+    // Random daily tip rotation
+    const tips = [
+        "Regular practice and reflection are key to understanding Jain philosophy.",
+        "Try to connect the teachings with your daily life for better understanding.",
+        "Take assessments regularly to track your learning progress.",
+        "Upload sect-specific content for more personalized learning.",
+        "Practice Ahimsa not just in actions, but in thoughts and words too.",
+        "Study with the AI tutor for personalized guidance and answers."
+    ];
+
+    const dailyTip = document.getElementById('dailyTip');
+    if (dailyTip) {
+        const randomTip = tips[Math.floor(Math.random() * tips.length)];
+        dailyTip.textContent = randomTip;
+    }
+});
+
+// Utility functions
+function showSuccess(message) {
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+    alert.style.cssText = 'top: 20px; right: 20px; z-index: 1050; max-width: 400px;';
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alert);
+    setTimeout(() => alert.remove(), 5000);
+}
+
+function showError(message) {
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+    alert.style.cssText = 'top: 20px; right: 20px; z-index: 1050; max-width: 400px;';
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alert);
+    setTimeout(() => alert.remove(), 5000);
+}
+</script>
+{% endblock %}

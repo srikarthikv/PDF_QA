@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+
+{% block title %}Learning Path - Jain AI Learning Ecosystem{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5">
+                <i class="fas fa-route me-2"></i>Personalized Learning Path
+            </h1>
+            <p class="lead text-muted">Follow a structured journey tailored to your goals and level</p>
+        </div>
+    </div>
+
+    <!-- Generate Learning Path Button -->
+    <div class="row mb-4" id="generateSection">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-map-marked-alt text-primary" style="font-size: 4rem;"></i>
+                    <h3 class="mt-4 mb-3">Generate Your Learning Path</h3>
+                    <p class="text-muted mb-4">
+                        We'll create a personalized learning journey based on your profile,
+                        current knowledge level, and available content.
+                    </p>
+                    <button type="button" class="btn btn-primary btn-lg" onclick="generateLearningPath()">
+                        <i class="fas fa-magic me-2"></i>Generate Learning Path
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Learning Path Display -->
+    <div id="learningPathDisplay" style="display: none;">
+        <!-- Overview -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h3 class="mb-2"><i class="fas fa-bullseye me-2"></i>Your Learning Journey</h3>
+                                <p class="mb-0" id="pathDescription">Loading...</p>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <div class="d-flex flex-column">
+                                    <div class="mb-2">
+                                        <i class="fas fa-calendar-alt me-2"></i>
+                                        <strong id="pathDuration">0 weeks</strong>
+                                    </div>
+                                    <div>
+                                        <i class="fas fa-book me-2"></i>
+                                        <strong id="pathSessions">0 sessions/week</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Learning Phases -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h4 class="mb-3"><i class="fas fa-list-ol me-2"></i>Learning Phases</h4>
+                <div id="phasesContainer">
+                    <!-- Phases will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Milestones -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-trophy me-2"></i>Milestones & Goals</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="milestonesContainer">
+                            <!-- Milestones will be dynamically inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <button type="button" class="btn btn-success btn-lg me-2" onclick="startLearningPath()">
+                    <i class="fas fa-play me-2"></i>Start Learning Path
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-lg me-2" onclick="regenerateLearningPath()">
+                    <i class="fas fa-sync me-2"></i>Regenerate Path
+                </button>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentLearningPath = null;
+
+function generateLearningPath() {
+    const btn = event.target.closest('button');
+    JainLearning.setButtonLoading(btn, true);
+    JainLearning.showLoading('Generating your personalized learning path...');
+
+    fetch('{{ url_for("generate_learning_path") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            currentLearningPath = data.learning_path;
+            displayLearningPath(data.learning_path);
+            document.getElementById('generateSection').style.display = 'none';
+            document.getElementById('learningPathDisplay').style.display = 'block';
+            JainLearning.showSuccess('Learning path generated successfully!');
+        } else {
+            JainLearning.showError(data.error || 'Failed to generate learning path');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        JainLearning.showError('An error occurred while generating learning path');
+    })
+    .finally(() => {
+        JainLearning.setButtonLoading(btn, false);
+        JainLearning.hideLoading();
+    });
+}
+
+function displayLearningPath(path) {
+    // Update overview
+    document.getElementById('pathDescription').textContent =
+        `Customized for ${path.user_level || 'your'} level learners`;
+    document.getElementById('pathDuration').textContent = `${path.duration_weeks || 0} weeks`;
+    document.getElementById('pathSessions').textContent = `${path.sessions_per_week || 0} sessions/week`;
+
+    // Display phases
+    const phasesContainer = document.getElementById('phasesContainer');
+    phasesContainer.innerHTML = '';
+
+    if (path.phases && path.phases.length > 0) {
+        path.phases.forEach((phase, index) => {
+            // Extract objectives
+            const objectives = phase.learning_objectives || phase.objectives || [];
+            const topics = phase.topics || [];
+            const activities = phase.activities || [];
+
+            const phaseCard = `
+                <div class="card mb-3 border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <span class="badge bg-light text-primary me-2">${phase.phase_number || index + 1}</span>
+                                ${phase.title || phase.name || 'Phase ' + (index + 1)}
+                            </h5>
+                            <small>Week ${phase.start_week || ''} - ${phase.end_week || ''}</small>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        ${phase.description ? `<p class="text-muted mb-3">${phase.description}</p>` : ''}
+
+                        ${objectives.length > 0 ? `
+                            <div class="mb-3">
+                                <h6><i class="fas fa-bullseye me-2 text-primary"></i>Learning Objectives:</h6>
+                                <ul class="mb-0">
+                                    ${objectives.map(obj => `<li>${obj}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+
+                        <div class="row">
+                            ${topics.length > 0 ? `
+                                <div class="col-md-6 mb-3">
+                                    <h6><i class="fas fa-book me-2 text-success"></i>Topics:</h6>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        ${topics.map(topic => `
+                                            <span class="badge bg-success">${topic}</span>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                            ${activities.length > 0 ? `
+                                <div class="col-md-6 mb-3">
+                                    <h6><i class="fas fa-tasks me-2 text-info"></i>Activities:</h6>
+                                    <ul class="list-unstyled ms-3">
+                                        ${activities.map(activity => {
+                                            const title = activity.title || activity;
+                                            return `<li><i class="fas fa-chevron-right text-info me-2"></i>${title}</li>`;
+                                        }).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+            phasesContainer.innerHTML += phaseCard;
+        });
+    } else {
+        phasesContainer.innerHTML = '<p class="text-muted text-center">No phases available</p>';
+    }
+
+    // Display milestones
+    const milestonesContainer = document.getElementById('milestonesContainer');
+    milestonesContainer.innerHTML = '';
+
+    if (path.milestones && path.milestones.length > 0) {
+        const milestonesHTML = path.milestones.map((milestone, index) => `
+            <div class="d-flex align-items-start mb-3">
+                <div class="flex-shrink-0">
+                    <span class="badge bg-warning rounded-pill" style="font-size: 1.2rem;">
+                        <i class="fas fa-trophy"></i>
+                    </span>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="mb-1">${milestone.title || 'Milestone ' + (index + 1)}</h6>
+                    <p class="text-muted mb-1">${milestone.description || ''}</p>
+                    <small class="text-muted">
+                        <i class="fas fa-calendar me-1"></i>${milestone.target_date || 'As you progress'}
+                    </small>
+                </div>
+            </div>
+        `).join('');
+        milestonesContainer.innerHTML = milestonesHTML;
+    } else {
+        milestonesContainer.innerHTML = '<p class="text-muted text-center">No milestones defined yet</p>';
+    }
+}
+
+function startLearningPath() {
+    if (!currentLearningPath) {
+        JainLearning.showError('Please generate a learning path first');
+        return;
+    }
+
+    // Redirect to first phase or dashboard with learning path active
+    JainLearning.showSuccess('Starting your learning journey!');
+    setTimeout(() => {
+        window.location.href = '{{ url_for("dashboard") }}';
+    }, 1500);
+}
+
+function regenerateLearningPath() {
+    if (confirm('Are you sure you want to generate a new learning path? This will replace your current one.')) {
+        document.getElementById('learningPathDisplay').style.display = 'none';
+        document.getElementById('generateSection').style.display = 'block';
+    }
+}
+</script>
+{% endblock %}

@@ -40,7 +40,7 @@ A comprehensive, modular AI-powered learning platform for Jainism targeting glob
 1. **Clone the repository**
 ```bash
 git clone <repository-url>
-cd rag_teacher_qa_system
+cd PDF_QA
 ```
 
 2. **Create virtual environment**

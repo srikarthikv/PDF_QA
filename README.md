@@ -251,7 +251,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🙏 Acknowledgments
 
-- 🤖 Generated with [Claude Code](https://claude.ai/code)
+- **Created by Sushant for the global Jain community**
 - Supporting all Jain traditions: Digambara, Shwetambara, Terapanthi, and Sthanakvasi
 - Built with modern web technologies and AI models
 
@@ -278,4 +278,4 @@ A: Upload some PDF content first for content-based assessments
 
 ---
 
-**Created with ❤️ for the global Jain community**
+

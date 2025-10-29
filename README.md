@@ -265,7 +265,8 @@ For issues and support:
 ### Troubleshooting
 
 **Q: PDF upload fails**
-A: Check file size (max 10MB) and ensure it's a valid PDF
+A: Check file size (max 100 
+MB) and ensure it's a valid PDF
 
 **Q: AI responses not working**
 A: Verify GOOGLE_API_KEY is set correctly
